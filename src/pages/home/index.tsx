@@ -1,108 +1,138 @@
 import { useEffect, useState } from 'react'
+import { Select, Space } from 'antd'
 import { axiosInstance } from 'services/api'
-import { Link } from 'react-router-dom'
-import { Button, Spin } from 'antd'
 
-interface IpokemonList {
+interface Iprovince {
     isLoading: boolean
-
-    isLoadingMore: boolean
-    isHasMore: string | null
-    offset: number
-    limit: number
-
-    items: Ipokemon[]
+    items: {
+        province_id: string
+        province: string
+    }[]
 }
-interface Ipokemon {
-    name: string
-    url: string
+interface Icity {
+    isLoading: boolean
+    items: {
+        isLoading: boolean
+        city_id: string
+        province_id: string
+        province: string
+        type: string
+        city_name: string
+        postal_code: string
+    }[]
 }
 
 export default function Home() {
-    const [pokemonList, setPokemonList] = useState<IpokemonList>({
-        isLoading: true,
-        isLoadingMore: false,
-        isHasMore: null,
-        offset: 0,
-        limit: 20,
+    const [province, setProvince] = useState<Iprovince>({
+        isLoading: false,
+        items: [],
+    })
+    const [city, setCity] = useState<Icity>({
+        isLoading: false,
         items: [],
     })
 
-    const fethPokemon = () => {
-        if (pokemonList.isLoading || pokemonList.isLoadingMore) {
+    const [selectedProvince, setSelectedProvince] = useState<string | null>(
+        null
+    )
+    const [selectedCity, setSelectedCity] = useState<string | null>(null)
+
+    useEffect(() => {
+        console.log('fetchProvince')
+
+        const fetchProvince = () => {
+            setProvince({
+                ...province,
+                isLoading: true,
+            })
+
+            axiosInstance.get('/province').then((response) => {
+                setProvince({
+                    isLoading: false,
+                    items: response.data.rajaongkir.results,
+                })
+            })
+        }
+
+        if (province.isLoading) {
+            return
+        } else {
+            fetchProvince()
+        }
+    }, [])
+
+    useEffect(() => {
+        const fetchCity = () => {
+            setCity({
+                ...city,
+                isLoading: true,
+            })
+
             axiosInstance
-                .get(
-                    `/pokemon?limit=${pokemonList.limit}&offset=${pokemonList.offset}`
-                )
+                .get(`/city?province=${selectedProvince}`)
                 .then((response) => {
-                    setPokemonList({
-                        ...pokemonList,
-                        isHasMore: response.data.next,
-                        isLoadingMore: false,
+                    console.log({ response })
+                    setCity({
                         isLoading: false,
-                        items: pokemonList.items.concat(response.data.results),
-                        offset: pokemonList.offset + pokemonList.limit,
+                        items: response.data.rajaongkir.results,
                     })
                 })
-                .catch((err) => {
-                    console.log(err)
-                })
         }
-    }
-    useEffect(fethPokemon, [pokemonList])
 
-    const loadMore = () => {
-        setPokemonList({
-            ...pokemonList,
-            isLoadingMore: true,
-        })
-    }
+        if (selectedProvince) fetchCity()
+    }, [selectedProvince])
+
+    // useEffect(() => {
+    //     axiosInstance
+    //         .post('/cost', {
+    //             origin: '457',
+    //             destination: '402',
+    //             weight: '1000',
+    //             courier: 'jne',
+    //         })
+    //         .then((res) => console.log({ res }))
+    // }, [])
 
     return (
-        <div className='container flex flex-col justify-center pb-12'>
-            <div className='home__grid container'>
-                {pokemonList.items.length === 0 || pokemonList.isLoading
-                    ? renderLoader()
-                    : pokemonList.items.map((pokemon, index) => {
-                          return (
-                              <Link
-                                  className='bg-white dark:bg-slate-800 rounded-lg px-6 py-8 ring-1 ring-slate-900/5 shadow-xl flex flex-col items-center'
-                                  to={`/pokemon/${pokemon.name}`}
-                                  key={index}
-                              >
-                                  <img
-                                      alt={pokemon.name}
-                                      src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${
-                                          index + 1
-                                      }.png`}
-                                      onError={({ currentTarget }) => {
-                                          currentTarget.src = require('assets/broken.png')
-                                      }}
-                                  />
-                                  <h3 className='text-slate-900 dark:text-white mt-5 text-base font-medium tracking-tight'>
-                                      {pokemon.name}
-                                  </h3>
-                              </Link>
-                          )
-                      })}
-                <>
-                    {pokemonList.items.length > 0 && pokemonList.isLoadingMore
-                        ? renderLoader()
-                        : null}
-                </>
-            </div>
-            <Button onClick={loadMore}>Load More</Button>
+        <div className='container '>
+            <h3>Origin</h3>
+            <Space>
+                <Select
+                    style={{ width: '100%' }}
+                    loading={province.isLoading}
+                    showSearch
+                    placeholder='Select a person'
+                    optionFilterProp='children'
+                    onChange={(value: string) => setSelectedProvince(value)}
+                    options={province.items.map((item) => ({
+                        value: item.province_id,
+                        label: item.province,
+                    }))}
+                    filterOption={(input, option) =>
+                        (option?.label ?? '')
+                            .toLowerCase()
+                            .includes(input.toLowerCase())
+                    }
+                />
+                <Select
+                    style={{ width: '100%' }}
+                    disabled={!selectedProvince}
+                    loading={city.isLoading}
+                    showSearch
+                    placeholder='Select a person'
+                    optionFilterProp='children'
+                    onChange={(value: string) => setSelectedCity(value)}
+                    options={city.items.map((item) => ({
+                        value: item.city_id,
+                        label: item.city_name,
+                    }))}
+                    filterOption={(input, option) =>
+                        (option?.label ?? '')
+                            .toLowerCase()
+                            .includes(input.toLowerCase())
+                    }
+                />
+            </Space>
         </div>
     )
-
-    function renderLoader() {
-        return Array.apply(null, Array(6)).map((_, index) => (
-            <div
-                className='bg-white dark:bg-slate-800 rounded-lg px-6 py-8 ring-1 ring-slate-900/5 shadow-xl flex flex-col items-center'
-                key={index}
-            >
-                <Spin size='large' />
-            </div>
-        ))
-    }
 }

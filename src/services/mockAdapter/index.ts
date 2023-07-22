@@ -1,10 +1,6 @@
 import { axiosInstance } from 'services/api'
 import MockAdapter from 'axios-mock-adapter'
-import {
-    pokemonLimit20Offset0,
-    pokemonLimit20Offset0Error,
-    pokemonLimit20Offset20,
-} from './pokemon'
+import { city_province3, cost, province } from './rajaOngkir'
 
 interface IenableMockAdapter {
     isEnabled: boolean
@@ -23,19 +19,18 @@ export const enableMockAdapter = ({
         })
 
         /**
-         * url      : /pokemon?limit=20&offset=0
+         * path      : /province
          */
-        pokemonLimit20Offset0(mockAdapter)
+        province(mockAdapter)
 
         /**
-         * url      : /pokemon?limit=20&offset=0
-         * status   : ERROR
+         * path      : /city?province=3
          */
-        pokemonLimit20Offset0Error(mockAdapter)
+        city_province3(mockAdapter)
 
         /**
-         * url : /pokemon?limit=20&offset=20
+         * path      : /cost
          */
-        pokemonLimit20Offset20(mockAdapter)
+        cost(mockAdapter)
     }
 }

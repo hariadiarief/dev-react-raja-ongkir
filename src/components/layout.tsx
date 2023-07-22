@@ -148,7 +148,7 @@ export default function Layout() {
                     </>
                 )}
             </Disclosure>
-            <main className='mt-12'>
+            <main className='mt-20'>
                 <Outlet />
             </main>
         </>

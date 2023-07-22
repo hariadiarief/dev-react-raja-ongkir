@@ -3,7 +3,10 @@ import { toast } from 'react-toastify'
 import { enableMockAdapter } from './mockAdapter'
 
 export const axiosInstance = axios.create({
-    baseURL: 'https://pokeapi.co/api/v2',
+    baseURL: '/api',
+    headers: {
+        key: process.env.REACT_APP_RAJA_ONGKIR_KEY,
+    },
 })
 
 enableMockAdapter({ isEnabled: false })

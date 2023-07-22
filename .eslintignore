@@ -1,2 +1,6 @@
 # tailwind
-tailwind.config.*
+
+tailwind.config.\*
+
+#proxy
+setupProxy.js
